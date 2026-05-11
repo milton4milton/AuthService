@@ -2,6 +2,7 @@
 using AuthService.Application.DTOs.Auth;
 using AuthService.Application.DTOs.User;
 using AuthService.Application.Interfaces;
+using AuthService.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -15,11 +16,13 @@ public class AuthController : ControllerBase
 {
     private readonly IUserService _userService;
     private readonly JwtSettings _jwtSettings;
+    private readonly AuthDbContext _dbContext;
 
-    public AuthController(IUserService userService, JwtSettings jwtSettings)
+    public AuthController(IUserService userService, JwtSettings jwtSettings, AuthDbContext dbContext)
     {
         _userService = userService;
         _jwtSettings = jwtSettings;
+        _dbContext = dbContext;
     }
 
     //[HttpPost("login")]
@@ -32,6 +35,24 @@ public class AuthController : ControllerBase
     //    var token = GenerateJwtToken(user);
     //    return Ok(new { token });
     //}
+
+    [HttpGet("db-status")]
+    [AllowAnonymous]
+    public async Task<IActionResult> DbStatus()
+    {
+        try
+        {
+            var canConnect = await _dbContext.Database.CanConnectAsync();
+            if (canConnect)
+                return Ok(new { status = "Connected" });
+
+            return StatusCode(503, new { status = "Disconnected" });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(503, new { status = "Error", message = ex.Message });
+        }
+    }
 
     [HttpPost("login")]
     [AllowAnonymous]
