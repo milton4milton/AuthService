@@ -1,4 +1,4 @@
-﻿using AuthService.Domain.Entities;
+using AuthService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -18,5 +18,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasMany(x => x.UserRoles)
                .WithOne(x => x.User)
                .HasForeignKey(x => x.UserId);
+
+        // Organization and Branch FKs are configured in their respective configurations
+        // to avoid duplicate relationship declarations
+        builder.Property(x => x.OrganizationId);
+        builder.Property(x => x.BranchId);
     }
 }

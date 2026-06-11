@@ -1,8 +1,8 @@
-﻿using AuthService.Application.DTOs.User;
+using AuthService.Application.Common;
+using AuthService.Application.DTOs.User;
 using AuthService.Application.Interfaces;
 using AuthService.Domain.Entities;
 using AuthService.Domain.Interfaces;
-using Microsoft.EntityFrameworkCore;
 
 namespace AuthService.Application.Services;
 
@@ -24,56 +24,50 @@ public class UserService : IUserService
 
     public async Task<UserReadDto> GetByIdAsync(Guid id)
     {
-        var user = await _userRepository.GetByIdAsync(id);
-        if (user == null) throw new Exception("User not found");
-
-        return new UserReadDto
-        {
-            Id = user.Id,
-            UserName = user.UserName,
-            Email = user.Email,
-            IsActive = user.IsActive,
-            Roles = user.UserRoles.Select(ur => ur.Role.Name).ToList()
-        };
+        var user = await _userRepository.GetByIdAsync(id)
+            ?? throw new Exception("User not found");
+        return MapToDto(user);
     }
 
     public async Task<List<UserReadDto>> GetAllAsync()
+        => (await _userRepository.GetAllAsync()).Select(MapToDto).ToList();
+
+    public async Task<PagedResult<UserReadDto>> GetPagedAsync(int page, int pageSize)
     {
-        var users = await _userRepository.GetAllAsync(); // Implement in repository
-        return users.Select(u => new UserReadDto
+        var (data, totalCount) = await _userRepository.GetPagedAsync(page, pageSize);
+        return new PagedResult<UserReadDto>
         {
-            Id = u.Id,
-            UserName = u.UserName,
-            Email = u.Email,
-            IsActive = u.IsActive,
-            Roles = u.UserRoles.Select(ur => ur.Role.Name).ToList()
-        }).ToList();
+            Data = data.Select(MapToDto).ToList(),
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize,
+        };
     }
+
+    public async Task<List<UserReadDto>> GetByOrganizationIdAsync(Guid organizationId)
+        => (await _userRepository.GetByOrganizationIdAsync(organizationId)).Select(MapToDto).ToList();
+
+    public async Task<List<UserReadDto>> GetByBranchIdAsync(Guid branchId)
+        => (await _userRepository.GetByBranchIdAsync(branchId)).Select(MapToDto).ToList();
 
     public async Task<UserReadDto> CreateUserAsync(UserCreateDto dto)
     {
-        var passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
-
         var user = new User
         {
             Id = Guid.NewGuid(),
             UserName = dto.UserName,
             Email = dto.Email,
-            PasswordHash = passwordHash,
-            IsActive = true
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+            IsActive = true,
+            OrganizationId = dto.OrganizationId,
+            BranchId = dto.BranchId
         };
 
-        // Assign roles
         foreach (var roleId in dto.RoleIds)
         {
             var role = await _roleRepository.GetByIdAsync(roleId);
             if (role == null) continue;
-
-            user.UserRoles.Add(new UserRole
-            {
-                RoleId = role.Id,
-                UserId = user.Id
-            });
+            user.UserRoles.Add(new UserRole { RoleId = role.Id, UserId = user.Id });
         }
 
         await _userRepository.AddAsync(user);
@@ -84,15 +78,17 @@ public class UserService : IUserService
 
     public async Task<UserReadDto> UpdateUserAsync(Guid userId, UserUpdateDto dto)
     {
-        var user = await _userRepository.GetByIdAsync(userId);
-        if (user == null) throw new Exception("User not found");
+        var user = await _userRepository.GetByIdAsync(userId)
+            ?? throw new Exception("User not found");
 
-        if (!string.IsNullOrEmpty(dto.UserName)) user.UserName = dto.UserName;
-        if (!string.IsNullOrEmpty(dto.Email)) user.Email = dto.Email;
-        if (!string.IsNullOrEmpty(dto.Password)) user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
+        if (!string.IsNullOrWhiteSpace(dto.UserName)) user.UserName = dto.UserName;
+        if (!string.IsNullOrWhiteSpace(dto.Email)) user.Email = dto.Email;
+        if (!string.IsNullOrWhiteSpace(dto.Password))
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
         if (dto.IsActive.HasValue) user.IsActive = dto.IsActive.Value;
+        if (dto.OrganizationId.HasValue) user.OrganizationId = dto.OrganizationId.Value;
+        if (dto.BranchId.HasValue) user.BranchId = dto.BranchId.Value;
 
-        // Update Roles
         if (dto.RoleIds != null)
         {
             user.UserRoles.Clear();
@@ -100,12 +96,7 @@ public class UserService : IUserService
             {
                 var role = await _roleRepository.GetByIdAsync(roleId);
                 if (role == null) continue;
-
-                user.UserRoles.Add(new UserRole
-                {
-                    RoleId = role.Id,
-                    UserId = user.Id
-                });
+                user.UserRoles.Add(new UserRole { RoleId = role.Id, UserId = user.Id });
             }
         }
 
@@ -113,36 +104,32 @@ public class UserService : IUserService
         return await GetByIdAsync(user.Id);
     }
 
-
     public async Task DeleteUserAsync(Guid id)
     {
-        var user = await _userRepository.GetByIdAsync(id);
-        if (user == null) throw new Exception("User not found");
-
-        _userRepository.Delete(user); // Add Delete method in repository
+        var user = await _userRepository.GetByIdAsync(id)
+            ?? throw new Exception("User not found");
+        _userRepository.Delete(user);
         await _unitOfWork.SaveChangesAsync();
     }
 
-
     public async Task<UserReadDto?> ValidateUserAsync(string email, string password)
     {
-        // Get user by email (repository method)
-        var user = await _userRepository.GetByEmailAsync(email); // Fix: Ensure GetByEmailAsync returns Task<User?> instead of Task<User>
+        var user = await _userRepository.GetByEmailAsync(email);
         if (user == null) return null;
-
-        // Verify password using BCrypt
-        bool isValid = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
-        if (!isValid) return null;
-
-        // Map to DTO
-        return new UserReadDto
-        {
-            Id = user.Id,
-            UserName = user.UserName,
-            Email = user.Email,
-            IsActive = user.IsActive,
-            Roles = user.UserRoles.Select(ur => ur.Role.Name).ToList()
-        };
+        if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash)) return null;
+        return MapToDto(user);
     }
 
+    private static UserReadDto MapToDto(User u) => new()
+    {
+        Id = u.Id,
+        UserName = u.UserName,
+        Email = u.Email,
+        IsActive = u.IsActive,
+        Roles = u.UserRoles.Select(ur => ur.Role.Name).ToList(),
+        OrganizationId = u.OrganizationId,
+        OrganizationName = u.Organization?.Name,
+        BranchId = u.BranchId,
+        BranchName = u.Branch?.Name
+    };
 }

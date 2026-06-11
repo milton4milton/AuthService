@@ -1,4 +1,4 @@
-﻿namespace AuthService.Application.DTOs.User;
+namespace AuthService.Application.DTOs.User;
 
 public class UserCreateDto
 {
@@ -6,4 +6,6 @@ public class UserCreateDto
     public string Email { get; set; } = null!;
     public string Password { get; set; } = null!;
     public List<Guid> RoleIds { get; set; } = new();
+    public Guid? OrganizationId { get; set; }
+    public Guid? BranchId { get; set; }
 }

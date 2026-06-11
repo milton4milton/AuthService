@@ -1,29 +1,17 @@
-﻿using AuthService.Application.DTOs.User;
+using AuthService.Application.Common;
+using AuthService.Application.DTOs.User;
 
 namespace AuthService.Application.Interfaces;
 
 public interface IUserService
 {
-    // Query: Get user by Id
     Task<UserReadDto> GetByIdAsync(Guid id);
-
-    // Command: Create user
-    Task<UserReadDto> CreateUserAsync(UserCreateDto dto);
-
-    // Command: Update user
-    Task<UserReadDto> UpdateUserAsync(Guid userId, UserUpdateDto dto);
-
-    // Optional: List all users
     Task<List<UserReadDto>> GetAllAsync();
+    Task<PagedResult<UserReadDto>> GetPagedAsync(int page, int pageSize);
+    Task<List<UserReadDto>> GetByOrganizationIdAsync(Guid organizationId);
+    Task<List<UserReadDto>> GetByBranchIdAsync(Guid branchId);
+    Task<UserReadDto> CreateUserAsync(UserCreateDto dto);
+    Task<UserReadDto> UpdateUserAsync(Guid userId, UserUpdateDto dto);
     Task DeleteUserAsync(Guid id);
-    // Add this method
     Task<UserReadDto?> ValidateUserAsync(string email, string password);
-
-
-
-
-  
-
-
-
 }

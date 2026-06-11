@@ -1,4 +1,5 @@
-﻿using AuthService.Application.DTOs.Role;
+﻿using AuthService.Application.Common;
+using AuthService.Application.DTOs.Role;
 using AuthService.Application.Interfaces;
 using AuthService.Domain.Entities;
 using AuthService.Domain.Interfaces;
@@ -40,6 +41,18 @@ public class RoleService : IRoleService
             Description = r.Description,
             IsActive = r.IsActive
         }).ToList();
+    }
+
+    public async Task<PagedResult<RoleReadDto>> GetPagedAsync(int page, int pageSize)
+    {
+        var (data, totalCount) = await _roleRepository.GetPagedAsync(page, pageSize);
+        return new PagedResult<RoleReadDto>
+        {
+            Data = data.Select(r => new RoleReadDto { Id = r.Id, Name = r.Name, Description = r.Description, IsActive = r.IsActive }).ToList(),
+            TotalCount = totalCount,
+            Page = page,
+            PageSize = pageSize,
+        };
     }
 
     public async Task<RoleReadDto> CreateRoleAsync(RoleCreateDto dto)

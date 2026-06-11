@@ -1,4 +1,4 @@
-﻿using AuthService.Application.DTOs.Role;
+using AuthService.Application.DTOs.Role;
 using AuthService.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -7,7 +7,7 @@ namespace AuthService.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize] // JWT required
+[Authorize]
 public class RoleController : ControllerBase
 {
     private readonly IRoleService _roleService;
@@ -17,17 +17,24 @@ public class RoleController : ControllerBase
         _roleService = roleService;
     }
 
-    // GET: api/Role
+    // GET: api/role?page=1&pageSize=10
     [HttpGet]
-    //[Authorize(Roles = "Admin")]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    {
+        var result = await _roleService.GetPagedAsync(page, pageSize);
+        return Ok(result);
+    }
+
+    // GET: api/role/all  — unpaged list for dropdowns/selects
+    [HttpGet("all")]
+    public async Task<IActionResult> GetAllLookup()
     {
         var roles = await _roleService.GetAllAsync();
         return Ok(roles);
     }
 
-    [HttpGet("byid")]
-    public async Task<IActionResult> GetById([FromQuery] Guid id)
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(Guid id)
     {
         var role = await _roleService.GetByIdAsync(id);
         if (role == null)
@@ -36,32 +43,16 @@ public class RoleController : ControllerBase
         return Ok(role);
     }
 
-
-
-    //// GET: api/Role/{id}
-    //[HttpGet("{id}")]
-    ////[Authorize(Roles = "Admin")]
-    //public async Task<IActionResult> GetById(Guid id)
-    //{
-    //    var role = await _roleService.GetByIdAsync(id);
-    //    if (role == null)
-    //        return NotFound();
-
-    //    return Ok(role);
-    //}
-
-    // POST: api/Role
     [HttpPost]
-    //[Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Super Admin")]
     public async Task<IActionResult> Create([FromBody] RoleCreateDto dto)
     {
         var createdRole = await _roleService.CreateRoleAsync(dto);
         return CreatedAtAction(nameof(GetById), new { id = createdRole.Id }, createdRole);
     }
 
-    // PUT: api/Role/{id}
     [HttpPut("{id}")]
-    //[Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Super Admin")]
     public async Task<IActionResult> Update(Guid id, [FromBody] RoleUpdateDto dto)
     {
         var updatedRole = await _roleService.UpdateRoleAsync(id, dto);
@@ -71,9 +62,8 @@ public class RoleController : ControllerBase
         return Ok(updatedRole);
     }
 
-    // DELETE: api/Role/{id}
     [HttpDelete("{id}")]
-    //[Authorize(Roles = "Admin")]
+    [Authorize(Roles = "Super Admin")]
     public async Task<IActionResult> Delete(Guid id)
     {
         await _roleService.DeleteRoleAsync(id);

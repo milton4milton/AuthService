@@ -1,10 +1,12 @@
-﻿namespace AuthService.Application.DTOs.User;
+namespace AuthService.Application.DTOs.User;
 
 public class UserUpdateDto
 {
-    public string? UserName { get; set; }        // optional
-    public string? Email { get; set; }           // optional
-    public string? Password { get; set; }        // optional
-    public bool? IsActive { get; set; }          // optional
-    public List<Guid>? RoleIds { get; set; }     // optional
+    public string? UserName { get; set; }
+    public string? Email { get; set; }
+    public string? Password { get; set; }
+    public bool? IsActive { get; set; }
+    public List<Guid>? RoleIds { get; set; }
+    public Guid? OrganizationId { get; set; }
+    public Guid? BranchId { get; set; }
 }

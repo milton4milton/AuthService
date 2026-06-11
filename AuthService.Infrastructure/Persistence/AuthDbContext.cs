@@ -1,4 +1,4 @@
-﻿using AuthService.Domain.Entities;
+using AuthService.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace AuthService.Infrastructure.Persistence;
@@ -16,11 +16,12 @@ public class AuthDbContext : DbContext
     public DbSet<RolePermission> RolePermissions => Set<RolePermission>();
     public DbSet<Menu> Menus => Set<Menu>();
     public DbSet<UiAccessPermission> UiAccessPermissions => Set<UiAccessPermission>();
+    public DbSet<Organization> Organizations => Set<Organization>();
+    public DbSet<Branch> Branches => Set<Branch>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AuthDbContext).Assembly);
         base.OnModelCreating(modelBuilder);
     }
-
 }
