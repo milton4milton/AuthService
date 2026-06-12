@@ -7,5 +7,5 @@ public class UserCreateDto
     public string Password { get; set; } = null!;
     public List<Guid> RoleIds { get; set; } = new();
     public Guid? OrganizationId { get; set; }
-    public Guid? BranchId { get; set; }
+    public List<Guid> BranchIds { get; set; } = new();
 }

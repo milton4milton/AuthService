@@ -16,21 +16,21 @@ public class UserRepository : IUserRepository
         => await _context.Users
             .Include(u => u.UserRoles).ThenInclude(ur => ur.Role)
             .Include(u => u.Organization)
-            .Include(u => u.Branch)
+            .Include(u => u.UserBranches).ThenInclude(ub => ub.Branch)
             .FirstOrDefaultAsync(u => u.Id == id);
 
     public async Task<User?> GetByEmailAsync(string email)
         => await _context.Users
             .Include(u => u.UserRoles).ThenInclude(ur => ur.Role)
             .Include(u => u.Organization)
-            .Include(u => u.Branch)
+            .Include(u => u.UserBranches).ThenInclude(ub => ub.Branch)
             .FirstOrDefaultAsync(u => u.Email == email);
 
     public async Task<List<User>> GetAllAsync()
         => await _context.Users
             .Include(u => u.UserRoles).ThenInclude(ur => ur.Role)
             .Include(u => u.Organization)
-            .Include(u => u.Branch)
+            .Include(u => u.UserBranches).ThenInclude(ub => ub.Branch)
             .ToListAsync();
 
     public async Task<(List<User> Data, int TotalCount)> GetPagedAsync(int page, int pageSize)
@@ -38,7 +38,7 @@ public class UserRepository : IUserRepository
         var query = _context.Users
             .Include(u => u.UserRoles).ThenInclude(ur => ur.Role)
             .Include(u => u.Organization)
-            .Include(u => u.Branch)
+            .Include(u => u.UserBranches).ThenInclude(ub => ub.Branch)
             .OrderBy(u => u.UserName);
         var totalCount = await query.CountAsync();
         var data = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
@@ -49,7 +49,7 @@ public class UserRepository : IUserRepository
         => await _context.Users
             .Include(u => u.UserRoles).ThenInclude(ur => ur.Role)
             .Include(u => u.Organization)
-            .Include(u => u.Branch)
+            .Include(u => u.UserBranches).ThenInclude(ub => ub.Branch)
             .Where(u => u.OrganizationId == organizationId)
             .ToListAsync();
 
@@ -57,8 +57,8 @@ public class UserRepository : IUserRepository
         => await _context.Users
             .Include(u => u.UserRoles).ThenInclude(ur => ur.Role)
             .Include(u => u.Organization)
-            .Include(u => u.Branch)
-            .Where(u => u.BranchId == branchId)
+            .Include(u => u.UserBranches).ThenInclude(ub => ub.Branch)
+            .Where(u => u.UserBranches.Any(ub => ub.BranchId == branchId))
             .ToListAsync();
 
     public async Task AddAsync(User user)

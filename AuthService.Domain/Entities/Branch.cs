@@ -14,5 +14,5 @@ public class Branch
     public DateTime? UpdatedAt { get; set; }
 
     public Organization Organization { get; set; } = null!;
-    public ICollection<User> Users { get; set; } = new List<User>();
+    public ICollection<UserBranch> UserBranches { get; set; } = new List<UserBranch>();
 }

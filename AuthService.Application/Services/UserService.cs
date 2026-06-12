@@ -60,7 +60,6 @@ public class UserService : IUserService
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
             IsActive = true,
             OrganizationId = dto.OrganizationId,
-            BranchId = dto.BranchId
         };
 
         foreach (var roleId in dto.RoleIds)
@@ -69,6 +68,9 @@ public class UserService : IUserService
             if (role == null) continue;
             user.UserRoles.Add(new UserRole { RoleId = role.Id, UserId = user.Id });
         }
+
+        foreach (var branchId in dto.BranchIds)
+            user.UserBranches.Add(new UserBranch { UserId = user.Id, BranchId = branchId });
 
         await _userRepository.AddAsync(user);
         await _unitOfWork.SaveChangesAsync();
@@ -87,7 +89,6 @@ public class UserService : IUserService
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
         if (dto.IsActive.HasValue) user.IsActive = dto.IsActive.Value;
         if (dto.OrganizationId.HasValue) user.OrganizationId = dto.OrganizationId.Value;
-        if (dto.BranchId.HasValue) user.BranchId = dto.BranchId.Value;
 
         if (dto.RoleIds != null)
         {
@@ -98,6 +99,13 @@ public class UserService : IUserService
                 if (role == null) continue;
                 user.UserRoles.Add(new UserRole { RoleId = role.Id, UserId = user.Id });
             }
+        }
+
+        if (dto.BranchIds != null)
+        {
+            user.UserBranches.Clear();
+            foreach (var branchId in dto.BranchIds)
+                user.UserBranches.Add(new UserBranch { UserId = user.Id, BranchId = branchId });
         }
 
         await _unitOfWork.SaveChangesAsync();
@@ -129,7 +137,11 @@ public class UserService : IUserService
         Roles = u.UserRoles.Select(ur => ur.Role.Name).ToList(),
         OrganizationId = u.OrganizationId,
         OrganizationName = u.Organization?.Name,
-        BranchId = u.BranchId,
-        BranchName = u.Branch?.Name
+        Branches = u.UserBranches.Select(ub => new BranchInfoDto
+        {
+            Id = ub.Branch.Id,
+            Name = ub.Branch.Name,
+            Code = ub.Branch.Code,
+        }).ToList()
     };
 }

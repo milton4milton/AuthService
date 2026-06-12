@@ -70,8 +70,12 @@ public class AuthController : ControllerBase
             Token = token,
             User = new AuthUserDto
             {
-                UserName = user.UserName,
-                Role = user.Roles.FirstOrDefault() // ধরছি Admin
+                UserName        = user.UserName,
+                Email           = user.Email,
+                Role            = user.Roles.FirstOrDefault(),
+                Roles           = user.Roles,
+                OrganizationId  = user.OrganizationId,
+                OrganizationName = user.OrganizationName,
             }
         };
 
@@ -88,9 +92,10 @@ public class AuthController : ControllerBase
         };
 
         foreach (var role in user.Roles)
-        {
             claims.Add(new Claim(ClaimTypes.Role, role));
-        }
+
+        if (user.OrganizationId.HasValue)
+            claims.Add(new Claim("organizationId", user.OrganizationId.Value.ToString()));
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.SecretKey));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

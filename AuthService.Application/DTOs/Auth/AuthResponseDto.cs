@@ -9,5 +9,9 @@ public class AuthResponseDto
 public class AuthUserDto
 {
     public string UserName { get; set; }
-    public string Role { get; set; } // single role (Admin)
+    public string Email { get; set; }
+    public string Role { get; set; }          // primary role (first assigned)
+    public List<string> Roles { get; set; } = new();
+    public Guid? OrganizationId { get; set; }
+    public string? OrganizationName { get; set; }
 }

@@ -8,5 +8,5 @@ public class UserUpdateDto
     public bool? IsActive { get; set; }
     public List<Guid>? RoleIds { get; set; }
     public Guid? OrganizationId { get; set; }
-    public Guid? BranchId { get; set; }
+    public List<Guid>? BranchIds { get; set; }
 }

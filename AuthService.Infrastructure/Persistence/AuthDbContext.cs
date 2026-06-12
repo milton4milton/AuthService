@@ -18,6 +18,7 @@ public class AuthDbContext : DbContext
     public DbSet<UiAccessPermission> UiAccessPermissions => Set<UiAccessPermission>();
     public DbSet<Organization> Organizations => Set<Organization>();
     public DbSet<Branch> Branches => Set<Branch>();
+    public DbSet<UserBranch> UserBranches => Set<UserBranch>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

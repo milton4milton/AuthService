@@ -9,6 +9,5 @@ public class UserReadDto
     public List<string> Roles { get; set; } = new();
     public Guid? OrganizationId { get; set; }
     public string? OrganizationName { get; set; }
-    public Guid? BranchId { get; set; }
-    public string? BranchName { get; set; }
+    public List<BranchInfoDto> Branches { get; set; } = new();
 }

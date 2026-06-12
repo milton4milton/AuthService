@@ -9,9 +9,8 @@ public class User
     public bool IsActive { get; set; }
 
     public Guid? OrganizationId { get; set; }
-    public Guid? BranchId { get; set; }
 
     public Organization? Organization { get; set; }
-    public Branch? Branch { get; set; }
     public ICollection<UserRole> UserRoles { get; set; } = new List<UserRole>();
+    public ICollection<UserBranch> UserBranches { get; set; } = new List<UserBranch>();
 }

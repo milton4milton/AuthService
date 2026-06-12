@@ -19,9 +19,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
                .WithOne(x => x.User)
                .HasForeignKey(x => x.UserId);
 
-        // Organization and Branch FKs are configured in their respective configurations
-        // to avoid duplicate relationship declarations
         builder.Property(x => x.OrganizationId);
-        builder.Property(x => x.BranchId);
     }
 }

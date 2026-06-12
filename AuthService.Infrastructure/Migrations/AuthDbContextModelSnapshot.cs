@@ -259,9 +259,6 @@ namespace AuthService.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("BranchId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -284,11 +281,24 @@ namespace AuthService.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BranchId");
-
                     b.HasIndex("OrganizationId");
 
                     b.ToTable("Users", (string)null);
+                });
+
+            modelBuilder.Entity("AuthService.Domain.Entities.UserBranch", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BranchId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("UserId", "BranchId");
+
+                    b.HasIndex("BranchId");
+
+                    b.ToTable("UserBranches", (string)null);
                 });
 
             modelBuilder.Entity("AuthService.Domain.Entities.UserRole", b =>
@@ -371,19 +381,31 @@ namespace AuthService.Infrastructure.Migrations
 
             modelBuilder.Entity("AuthService.Domain.Entities.User", b =>
                 {
-                    b.HasOne("AuthService.Domain.Entities.Branch", "Branch")
-                        .WithMany("Users")
-                        .HasForeignKey("BranchId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("AuthService.Domain.Entities.Organization", "Organization")
                         .WithMany("Users")
                         .HasForeignKey("OrganizationId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.Navigation("Organization");
+                });
+
+            modelBuilder.Entity("AuthService.Domain.Entities.UserBranch", b =>
+                {
+                    b.HasOne("AuthService.Domain.Entities.Branch", "Branch")
+                        .WithMany("UserBranches")
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("AuthService.Domain.Entities.User", "User")
+                        .WithMany("UserBranches")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Branch");
 
-                    b.Navigation("Organization");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("AuthService.Domain.Entities.UserRole", b =>
@@ -407,7 +429,7 @@ namespace AuthService.Infrastructure.Migrations
 
             modelBuilder.Entity("AuthService.Domain.Entities.Branch", b =>
                 {
-                    b.Navigation("Users");
+                    b.Navigation("UserBranches");
                 });
 
             modelBuilder.Entity("AuthService.Domain.Entities.Organization", b =>
@@ -426,6 +448,8 @@ namespace AuthService.Infrastructure.Migrations
 
             modelBuilder.Entity("AuthService.Domain.Entities.User", b =>
                 {
+                    b.Navigation("UserBranches");
+
                     b.Navigation("UserRoles");
                 });
 #pragma warning restore 612, 618
