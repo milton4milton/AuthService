@@ -74,8 +74,9 @@ public class AuthController : ControllerBase
                 Email           = user.Email,
                 Role            = user.Roles.FirstOrDefault(),
                 Roles           = user.Roles,
-                OrganizationId  = user.OrganizationId,
+                OrganizationId   = user.OrganizationId,
                 OrganizationName = user.OrganizationName,
+                Branches         = user.Branches,
             }
         };
 

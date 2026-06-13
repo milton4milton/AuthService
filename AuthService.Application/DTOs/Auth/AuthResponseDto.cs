@@ -1,4 +1,6 @@
-﻿namespace AuthService.Application.DTOs.Auth;
+﻿using AuthService.Application.DTOs.User;
+
+namespace AuthService.Application.DTOs.Auth;
 
 public class AuthResponseDto
 {
@@ -14,4 +16,5 @@ public class AuthUserDto
     public List<string> Roles { get; set; } = new();
     public Guid? OrganizationId { get; set; }
     public string? OrganizationName { get; set; }
+    public List<BranchInfoDto> Branches { get; set; } = new();
 }
